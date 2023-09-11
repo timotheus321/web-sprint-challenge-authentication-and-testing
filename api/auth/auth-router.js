@@ -2,15 +2,22 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const express = require('express');
 const router = express.Router();
-const Users = require('../users/users-models');
+const {  addUser,  findBy } = require('../users/users-models');
+const { jwtSecret }= require('../../config')
+
 
 router.post('/register', async (req, res) => {
   const { username, password } = req.body
+  
+
   if (!username || !password) {
+    
     return res.status(400).json("username and password required")
+    
   }
-  const existingUser = await findByUsername(username);
+  const existingUser = await findBy({username});
   if (existingUser) {
+  
     return res.status(400).json("username taken");
   }
 
@@ -58,9 +65,9 @@ router.post('/login', async (req, res) => {
   try {
     const { username, password } = req.body;
   
-    const user = await findUserByUsername(username);
+    const user = await findBy({username});
 
-    if (user && bcrypt.compareSync(password, user.password)) {
+    if (user && bcrypt.compareSync(password, user[0].password)) {
       const token = jwt.sign(
         {
           subject: user.id,
@@ -72,7 +79,7 @@ router.post('/login', async (req, res) => {
         }
       );
 
-      res.status(200).json({ message: `Welcome, ${username}`, token });
+      res.status(201).json({ message: `Welcome, ${username}`, token });
     } else {
       res.status(401).json({ message: 'Invalid credentials' });
     }
