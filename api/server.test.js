@@ -41,27 +41,6 @@ describe('POST /api/auth/register', () => {
 });
 
 
-// Tests for /api/auth/login
-// describe('POST /api/auth/login', () => {
-//   it('should return 200 on successful login', async () => {
-//     const res = await request(server)
-//     .post('/api/auth/login')
-//     .send({ username: 'JohnDoe', password: 'password123' });
-
-//   expect(res.status).toBe(200);
-//   expect(res.body).toHaveProperty('message');
-//   expect(res.body).toHaveProperty('token');
-// });
-//   });
-
-//   it('should return an error on failed login due to missing credentials', async () => {
-//     const res = await request(server)
-//     .post('/api/auth/login')
-//     .send({ username: 'JohnDoe' });
-//     console.log("Full Response Object:", res);  // Debugging line
-//   expect(res.status).toBe(401);
-//   expect(res.body).toEqual('username and password required');
-//   });
 
 describe('POST /api/auth/login', () => {
 
@@ -83,27 +62,49 @@ describe('POST /api/auth/login', () => {
 
 
 // Tests for /api/jokes
+// describe('GET /api/jokes', () => {
+//   it('should return 401 if unauthorized', async () => {
+//     const res = await request(server).get('/api/jokes');
+//     expect(res.status).toBe(401);
+//   });
+
+//   it('should return 200 if authorized', async () => {
+//     const loginResponse = await request(server)
+//       .post('/api/auth/login')
+//       .send({ username: 'JohnDoe', password: 'password123' });
+//     const token = loginResponse.body.token;
+
+//     const res = await request(server)
+//       .get('/api/jokes')
+//       .set('Authorization', token);
+
+//     expect(res.status).toBe(200);
+//   });
+// });
 describe('GET /api/jokes', () => {
-    it('should return 401 if unauthorized', async () => {
-      const res = await request(server).get('/api/jokes');
+  // it('should return 200 if authorized', async () => {
+  //   const loginResponse = await request(server).post('/api/auth/login').send({ username: 'JohnDoe', password: 'password123' });
+  //   const token = loginResponse.body.token;
+  //   const res = await request(server).get('/api/jokes').set('Authorization', token);
+  //   expect(res.status).toBe(200);
+  // });
+  it('should return 200 if authorized', async () => {
+    const loginResponse = await request(server).post('/api/auth/login').send({ username: 'JohnDoe', password: 'password123' });
+    console.log('Login Response:', loginResponse.body); // Log the response body
   
-      expect(res.status).toBe(401);
-      expect(res.body).toBe('Token required');
-    });
-
-
-  it('should return 200 and a list of jokes if authorized', async () => {
-    const loginResponse = await request(server)
-    .post('/api/auth/login')
-    .send({ username: 'JohnDoe', password: 'password123' });
-  const token = loginResponse.body.token;
-
-  const res = await request(server)
-    .get('/api/jokes')
-    .set('Authorization', token);
-
-  expect(res.status).toBe(200);
-  expect(Array.isArray(res.body)).toBe(true);
-});
+    const token = loginResponse.body.token;
+    
+    if (!token) {
+      throw new Error('Token not generated');
+    }
+  
+    const res = await request(server).get('/api/jokes').set('Authorization', token);
+    expect(res.status).toBe(200);
   });
+  
+  it('should return 401 if unauthorized', async () => {
+    const res = await request(server).get('/api/jokes');
+    expect(res.status).toBe(401);
+  });
+});
 

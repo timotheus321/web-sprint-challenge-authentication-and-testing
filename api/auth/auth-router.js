@@ -70,15 +70,15 @@ router.post('/register', async (req, res) => {
 });
 
 router.post('/login', async (req, res) => {
-  console.log("Request Body: ", req.body);
+  
   try {
     const { username, password } = req.body;
 
     const user = await findBy({username});
-    console.log("Debugging findBy:", user); // Debugging line
+    
     
     if (user && user.length > 0 && bcrypt.compareSync(password, user[0].password)) {
-      console.log("Password comparison successful");
+     
       
       const token = jwt.sign(
         {

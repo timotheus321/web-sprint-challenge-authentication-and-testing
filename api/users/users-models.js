@@ -18,7 +18,7 @@ function findBy(filter) {
 //   return findById(id);
 // }
 async function addUser(user) {
-  console.log("User data in addUser:", user);
+  
   await db('users').insert(user);
 
   const addedUser = await db('users').where({ username: user.username }).first();
