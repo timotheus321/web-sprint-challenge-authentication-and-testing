@@ -5,35 +5,43 @@ const router = express.Router();
 const {  addUser,  findBy } = require('../users/users-models');
 const { jwtSecret }= require('../../config')
 
-
 router.post('/register', async (req, res) => {
-  const { username, password } = req.body
+  
+    const { username, password } = req.body;
+
+    if (!username || !password) {
+      return res.status(400).json({ error: "username and password required" });
+    }
+
+    const existingUser = await findBy({ username: req.body.username });
+
+    if (existingUser.length > 0) {
+      return res.status(400).json({ error: "username taken" });
+    }
+
+    const rounds = Math.pow(10); // 2^8 rounds
+    try {
+      console.log("About to hash");
+      const hash = bcrypt.hashSync(password, rounds);
+      console.log("Hashing done");
+  
   
 
-  if (!username || !password) {
-    
-    return res.status(400).json("username and password required")
-    
+    const newUser = await addUser({
+      username,
+      password: hash,
+    });
+
+    res.status(201).json({
+      id: newUser.id,
+      username: newUser.username,
+      password: newUser.password,
+    });
   }
-  const existingUser = await findBy({username});
-  if (existingUser) {
-  
-    return res.status(400).json("username taken");
+    catch (error) {
+      console.error("An error occurred:", error);
+      return res.status(500).json({ error: 'Server error' });
   }
-
-  const rounds = Math.pow(2, 8); // 2^8 rounds
-  const hash = bcrypt.hashSync(password, rounds);
-
-  const newUser = await addUser({
-    username,
-    password: hash,
-  });
-
-  res.status(201).json({
-    id: newUser.id,
-    username: newUser.username,
-    password: newUser.password,
-  });
   /*
     IMPLEMENT
     You are welcome to build additional middlewares to help with the endpoint's functionality.
@@ -62,12 +70,16 @@ router.post('/register', async (req, res) => {
 });
 
 router.post('/login', async (req, res) => {
+  console.log("Request Body: ", req.body);
   try {
     const { username, password } = req.body;
-  
-    const user = await findBy({username});
 
-    if (user && bcrypt.compareSync(password, user[0].password)) {
+    const user = await findBy({username});
+    console.log("Debugging findBy:", user); // Debugging line
+    
+    if (user && user.length > 0 && bcrypt.compareSync(password, user[0].password)) {
+      console.log("Password comparison successful");
+      
       const token = jwt.sign(
         {
           subject: user.id,
@@ -78,14 +90,19 @@ router.post('/login', async (req, res) => {
           expiresIn: '1d',
         }
       );
-
-      res.status(201).json({ message: `Welcome, ${username}`, token });
+      res.status(200).json({ message: `Welcome, ${username}`, token });
+      
     } else {
       res.status(401).json({ message: 'Invalid credentials' });
     }
   } catch (error) {
     res.status(500).json({ message: 'Error logging in' });
   }
+});
+
+
+
+module.exports = router;
   /*
     IMPLEMENT
     You are welcome to build additional middlewares to help with the endpoint's functionality.
@@ -109,7 +126,3 @@ router.post('/login', async (req, res) => {
     4- On FAILED login due to `username` not existing in the db, or `password` being incorrect,
       the response body should include a string exactly as follows: "invalid credentials".
   */
-});
-
-
-module.exports = router;
