@@ -39,31 +39,7 @@ router.post('/register', async (req, res) => {
       console.error("An error occurred:", error);
       return res.status(500).json({ error: 'Server error' });
   }
-  /*
-    IMPLEMENT
-    You are welcome to build additional middlewares to help with the endpoint's functionality.
-    DO NOT EXCEED 2^8 ROUNDS OF HASHING!
 
-    1- In order to register a new account the client must provide `username` and `password`:
-      {
-        "username": "Captain Marvel", // must not exist already in the `users` table
-        "password": "foobar"          // needs to be hashed before it's saved
-      }
-
-    2- On SUCCESSFUL registration,
-      the response body should have `id`, `username` and `password`:
-      {
-        "id": 1,
-        "username": "Captain Marvel",
-        "password": "2a$08$jG.wIGR2S4hxuyWNcBf9MuoC4y0dNy7qC/LbmtuFBSdIhWks2LhpG"
-      }
-
-    3- On FAILED registration due to `username` or `password` missing from the request body,
-      the response body should include a string exactly as follows: "username and password required".
-
-    4- On FAILED registration due to the `username` being taken,
-      the response body should include a string exactly as follows: "username taken".
-  */
 });
 
 router.post('/login', async (req, res) => {
@@ -76,23 +52,14 @@ router.post('/login', async (req, res) => {
     }
 
     const user = await findBy({username});
-    console.log("Full user object:", user);
-    console.log("Retrieved user from the database:", user);
+    //console.log("Full user object:", user);
+    //console.log("Retrieved user from the database:", user);
     
     if (user && user.length > 0 && bcrypt.compareSync(password, user[0].password)) {
      
-      console.log("Generating token for user:", user[0].username);
+      //console.log("Generating token for user:", user[0].username);
       
-      // const token = jwt.sign(
-      //   {
-      //     subject: user.id,
-      //     username: user.username,
-      //   },
-      //   jwtSecret,
-      //   {
-      //     expiresIn: '1d',
-      //   }
-      // );
+
       const token = jwt.sign(
         {
           subject: user[0].id,
@@ -120,6 +87,31 @@ router.post('/login', async (req, res) => {
 
 
 module.exports = router;
+  /*
+    IMPLEMENT
+    You are welcome to build additional middlewares to help with the endpoint's functionality.
+    DO NOT EXCEED 2^8 ROUNDS OF HASHING!
+
+    1- In order to register a new account the client must provide `username` and `password`:
+      {
+        "username": "Captain Marvel", // must not exist already in the `users` table
+        "password": "foobar"          // needs to be hashed before it's saved
+      }
+
+    2- On SUCCESSFUL registration,
+      the response body should have `id`, `username` and `password`:
+      {
+        "id": 1,
+        "username": "Captain Marvel",
+        "password": "2a$08$jG.wIGR2S4hxuyWNcBf9MuoC4y0dNy7qC/LbmtuFBSdIhWks2LhpG"
+      }
+
+    3- On FAILED registration due to `username` or `password` missing from the request body,
+      the response body should include a string exactly as follows: "username and password required".
+
+    4- On FAILED registration due to the `username` being taken,
+      the response body should include a string exactly as follows: "username taken".
+  */
   /*
     IMPLEMENT
     You are welcome to build additional middlewares to help with the endpoint's functionality.
