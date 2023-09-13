@@ -1,6 +1,9 @@
 const db = require('../data/dbConfig');
 const request = require('supertest');
 const server = require('./server');
+const authMiddleware = require('./middleware/restricted');
+const jwt = require('jsonwebtoken');
+const { jwtSecret } = require('../config');
 // Write your tests here
 beforeEach(async () => {
   await db.migrate.rollback(); 
@@ -61,7 +64,7 @@ describe('POST /api/auth/login', () => {
 });
 
 
-// Tests for /api/jokes
+//Tests for /api/jokes
 // describe('GET /api/jokes', () => {
 //   it('should return 401 if unauthorized', async () => {
 //     const res = await request(server).get('/api/jokes');
@@ -82,29 +85,70 @@ describe('POST /api/auth/login', () => {
 //   });
 // });
 describe('GET /api/jokes', () => {
-  // it('should return 200 if authorized', async () => {
-  //   const loginResponse = await request(server).post('/api/auth/login').send({ username: 'JohnDoe', password: 'password123' });
-  //   const token = loginResponse.body.token;
-  //   const res = await request(server).get('/api/jokes').set('Authorization', token);
-  //   expect(res.status).toBe(200);
-  // });
   it('should return 200 if authorized', async () => {
-    const loginResponse = await request(server).post('/api/auth/login').send({ username: 'JohnDoe', password: 'password123' });
-    console.log('Login Response:', loginResponse.body); // Log the response body
+    const loginResponse = await request(server)
+    .post('/api/auth/login')
+    .send({ username: 'testUser', password: 'yourPassword' });
+    
+    // Debugging
+    console.log("Status Code: ", loginResponse.status);
+    console.log("Token Path in Response: ", Object.keys(loginResponse.body));
+    console.log("Full Login Response: ", JSON.stringify(loginResponse.body, null, 2));
   
     const token = loginResponse.body.token;
-    
+  
+    // Debugging
+   // expect(token).toBeDefined();
     if (!token) {
+      console.error("Login Response: ", loginResponse.body);
       throw new Error('Token not generated');
     }
   
-    const res = await request(server).get('/api/jokes').set('Authorization', token);
+    const res = await request(server)
+      .get('/api/jokes')
+      .set('Authorization', `Bearer ${token}`);
+  
     expect(res.status).toBe(200);
   });
+  
+ 
+  });
+
+  it('should return 400 if token is malformed', async () => {
+    const res = await request(server).get('/api/jokes').set('Authorization', 'Bearer malformed_token_here');
+    expect(res.status).toBe(400);
+  });
+  // `Bearer ${token}`
   
   it('should return 401 if unauthorized', async () => {
     const res = await request(server).get('/api/jokes');
     expect(res.status).toBe(401);
   });
-});
 
+
+// describe('JWT Middleware', () => {
+//   it('should call next() for a valid token', () => {
+//     const mockRequest = {
+//       headers: {
+//         authorization: `Bearer ${token}`,
+//       },
+//     };
+
+//     const mockResponse = {
+//       status: jest.fn().mockReturnThis(),
+//       json: jest.fn(),
+//     };
+
+//     const mockNext = jest.fn();
+
+//     // Mocking jwt.verify
+//     jwt.verify = jest.fn((token, secret, cb) => {
+//       cb(null, { some: 'payload' });
+//     });
+
+//     yourMiddleware(mockRequest, mockResponse, mockNext);
+
+//     expect(mockNext).toBeCalledTimes(1);
+//     expect(mockResponse.status).not.toBeCalled();
+//   });
+// });

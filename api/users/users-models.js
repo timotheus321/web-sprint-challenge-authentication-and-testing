@@ -7,7 +7,7 @@ function find() {
 }
 
 function findBy(filter) {
-    console.log("Filter used in findBy:", filter);
+ 
   return db('users').where(filter);
 }
 

@@ -19,13 +19,10 @@ router.post('/register', async (req, res) => {
       return res.status(400).json({ error: "username taken" });
     }
 
-    const rounds = Math.pow(10); // 2^8 rounds
+    const rounds = Math.pow(8); 
     try {
-      console.log("About to hash");
+     
       const hash = bcrypt.hashSync(password, rounds);
-      console.log("Hashing done");
-  
-  
 
     const newUser = await addUser({
       username,
@@ -74,22 +71,42 @@ router.post('/login', async (req, res) => {
   try {
     const { username, password } = req.body;
 
+    if (!username || !password) {
+      return res.status(400).json({ error: "username and password required" });
+    }
+
     const user = await findBy({username});
-    
+    console.log("Full user object:", user);
+    console.log("Retrieved user from the database:", user);
     
     if (user && user.length > 0 && bcrypt.compareSync(password, user[0].password)) {
      
+      console.log("Generating token for user:", user[0].username);
       
+      // const token = jwt.sign(
+      //   {
+      //     subject: user.id,
+      //     username: user.username,
+      //   },
+      //   jwtSecret,
+      //   {
+      //     expiresIn: '1d',
+      //   }
+      // );
       const token = jwt.sign(
         {
-          subject: user.id,
-          username: user.username,
+          subject: user[0].id,
+          username: user[0].username,
         },
         jwtSecret,
         {
           expiresIn: '1d',
         }
       );
+      
+
+      console.log("Generated token:", token);
+
       res.status(200).json({ message: `Welcome, ${username}`, token });
       
     } else {
