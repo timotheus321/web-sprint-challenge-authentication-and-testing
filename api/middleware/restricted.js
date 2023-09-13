@@ -70,7 +70,7 @@ const verifyToken = (token, callback) => {
 
 const handleTokenError = (err, res) => {
   if (err.name === 'JsonWebTokenError') {
-      return res.status(400).json({ message: 'Malformed token' });
+      return res.status(400).json({ message: 'Token invalid' });
   }
   return res.status(401).json({ message: 'Token invalid' });
 };

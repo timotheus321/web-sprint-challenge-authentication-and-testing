@@ -110,6 +110,7 @@ describe('GET /api/jokes', () => {
   it('should return 400 if token is malformed', async () => {
     const res = await request(server).get('/api/jokes').set('Authorization', 'Bearer malformed_token_here');
     expect(res.status).toBe(400);
+    expect(res.body.message).toMatch(/invalid/i);
   });
   // `Bearer ${token}`
   
